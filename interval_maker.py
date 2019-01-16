@@ -29,7 +29,7 @@ def make_chunk(track, num, duration):
     return _chunk
 
 
-def make_track(fast_audio_loc, slow_audio_loc, output_dir, activity_count, circuit_count, activity_duration=30, rest_duration_between_activity=30, rest_duration_between_circuits=60, transition_seconds=3):
+def make_track(fast_audio_loc, slow_audio_loc, output_dir, activity_count, circuit_count, activity_duration=30, rest_duration_between_activity=30, rest_duration_between_circuits=60, transition_seconds=3, rest_audio_loc=None):
 
     set_active = (activity_duration * _second)
     set_rest = (rest_duration_between_activity * _second) + (transition_seconds * _second)
@@ -39,16 +39,21 @@ def make_track(fast_audio_loc, slow_audio_loc, output_dir, activity_count, circu
     slow = AudioSegment.from_mp3(fast_audio_loc)
     fast = AudioSegment.from_mp3(slow_audio_loc)
 
+    if rest_audio_loc is not None:
+        rest = AudioSegment.from_mp3(rest_audio_loc)
+    else:
+        rest = AudioSegment.from_mp3(slow_audio_loc)
+
     interleaved_set_and_rest_chunks = []
     for active_set_num in range(0, activity_count + 1):
         fast_chunk = make_chunk(fast, active_set_num, set_active)
         interleaved_set_and_rest_chunks.append(fast_chunk)
 
-        if active_set_num < active_set_num + 1:
+        if active_set_num < activity_count + 1:
             slow_chunk = make_chunk(slow, active_set_num, set_rest)
             interleaved_set_and_rest_chunks.append(slow_chunk)
         else:
-            rest_chunk = make_chunk(slow, active_set_num, circut_rest)
+            rest_chunk = make_chunk(rest, active_set_num, circut_rest)
             interleaved_set_and_rest_chunks.append(rest_chunk)
 
     full_track = slow[0 : 5 * fade_duration]
@@ -79,14 +84,15 @@ def play_track(track_loc):
 
 @click.command()
 @click.option('--fast_track_location', default="/Users/208520/Desktop/gym/Wizard Castle - Winged Mother.mp3")
-@click.option('--slow_track_location', default="/Users/208520/Desktop/gym/Chris Zabriskie - Stories About the World That Once Was.mp3")
+@click.option('--slow_track_location', default="/Users/208520/Desktop/gym/Ben Prunty - A.C.I.D..mp3")
+@click.option('--rest_track_location', default="/Users/208520/Desktop/gym/Chris Zabriskie - Stories About the World That Once Was.mp3")
 @click.option('--output_dir', default="/Users/208520/Desktop/gym")
 @click.option('--activity_count', default=6)
 @click.option('--circuit_count', default=3)
 @click.option('--activity_duration', default=30)
-@click.option('--activity_rest', default=20)
-@click.option('--circuit_rest', default=60)
-def cli(fast_track_location, slow_track_location, output_dir, activity_count, circuit_count, activity_duration, activity_rest, circuit_rest):
+@click.option('--activity_rest', default=10)
+@click.option('--circuit_rest', default=30)
+def cli(fast_track_location, rest_track_location, slow_track_location, output_dir, activity_count, circuit_count, activity_duration, activity_rest, circuit_rest):
     make_track(fast_track_location, slow_track_location, output_dir, activity_count, circuit_count, activity_duration, activity_rest, circuit_rest)
 
 
