@@ -36,27 +36,28 @@ def make_track(fast_audio_loc, slow_audio_loc, output_dir, activity_count, circu
     circut_rest = (rest_duration_between_circuits * _second) + (transition_seconds * _second)
     fade_duration = transition_seconds * _second
 
-    slow = AudioSegment.from_mp3(fast_audio_loc)
-    fast = AudioSegment.from_mp3(slow_audio_loc)
+    slow = AudioSegment.from_mp3(slow_audio_loc)
+    fast = AudioSegment.from_mp3(fast_audio_loc)
 
     if rest_audio_loc is not None:
+        print('rest track found')
         rest = AudioSegment.from_mp3(rest_audio_loc)
     else:
         rest = AudioSegment.from_mp3(slow_audio_loc)
 
     interleaved_set_and_rest_chunks = []
-    for active_set_num in range(0, activity_count + 1):
+    for active_set_num in range(0, activity_count):
         fast_chunk = make_chunk(fast, active_set_num, set_active)
         interleaved_set_and_rest_chunks.append(fast_chunk)
 
-        if active_set_num < activity_count + 1:
+        if active_set_num < activity_count:
             slow_chunk = make_chunk(slow, active_set_num, set_rest)
             interleaved_set_and_rest_chunks.append(slow_chunk)
         else:
             rest_chunk = make_chunk(rest, active_set_num, circut_rest)
             interleaved_set_and_rest_chunks.append(rest_chunk)
 
-    full_track = slow[0 : 5 * fade_duration]
+    full_track = slow[0 : 3 * fade_duration]
     activity_track = fast[0 : 500]
 
     for chunk_num, chunk in enumerate(interleaved_set_and_rest_chunks):
@@ -67,7 +68,7 @@ def make_track(fast_audio_loc, slow_audio_loc, output_dir, activity_count, circu
 
     print('activity track made, duration = {} seconds'.format(activity_track.duration_seconds))
 
-    for circuit_num in range(0, circuit_count + 1):
+    for circuit_num in range(0, circuit_count):
         full_track = full_track + activity_track
     
     print('full circuit track made, duration = {} seconds'.format(full_track.duration_seconds))
@@ -93,7 +94,7 @@ def play_track(track_loc):
 @click.option('--activity_rest', default=10)
 @click.option('--circuit_rest', default=30)
 def cli(fast_track_location, rest_track_location, slow_track_location, output_dir, activity_count, circuit_count, activity_duration, activity_rest, circuit_rest):
-    make_track(fast_track_location, slow_track_location, output_dir, activity_count, circuit_count, activity_duration, activity_rest, circuit_rest)
+    make_track(fast_track_location, slow_track_location, output_dir, activity_count, circuit_count, activity_duration, activity_rest, circuit_rest, rest_audio_loc=rest_track_location)
 
 
 if __name__ == "__main__":
